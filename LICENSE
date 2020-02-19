@@ -1,4 +1,4 @@
-MIT License
+MIT License + Additional Requirements on and after line 23.
 
 Copyright (c) 2020 Dan Violet Sagmiller
 
@@ -19,3 +19,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+ADDITIONAL REQUIREMENTS:
+This software is free for students and anyone working on a non-commercial apps/games. However, for pay based content, you must have a dev blog that regularly teaches and talks about the development process. At least 50% of your code base must be open source. It is intended for learning.  This section will update later, and I am looking for a better/more clear description.
