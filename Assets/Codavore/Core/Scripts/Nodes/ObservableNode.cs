@@ -1,9 +1,10 @@
-﻿// <copyright file="VariableBase.cs" company="Codavore, LLC">
+﻿// <copyright file="ObservableNode.cs" company="Codavore, LLC">
 //     Copyright (c) Codavore, LLC. All rights reserved.
 // </copyright>
 
 namespace Codavore.Core
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using UnityEngine;
@@ -25,22 +26,25 @@ namespace Codavore.Core
         IObservableNode GetChild(string name);
 
         IObservableNode GetChildFromPath(string path);
+
+        IEnumerable<IObservableNode> GetChildren();
     }
 
     public class ObservableNode : IObservableNode
     {
-        private static readonly string PathSeparaterString = "/";
-
-        private static readonly char[] PathSeparaterCharArray = { PathSeparaterString[0] };
-
+        [JsonProperty]
         private object Value;
 
+        [JsonIgnore]
         private Action OnValueChange = () => { };
 
+        [JsonIgnore]
         private IObservableNode Parent = null;
 
+        [JsonProperty]
         private string Name = "";
 
+        [JsonProperty]
         private Dictionary<string, IObservableNode> Children
             = new Dictionary<string, IObservableNode>();
 
@@ -86,6 +90,14 @@ namespace Codavore.Core
             return this.Name;
         }
 
+        public IEnumerable<IObservableNode> GetChildren()
+        {
+            foreach(var child in this.Children)
+            {
+                yield return child.Value;
+            }
+        }
+
         public IObservableNode GetChild(string name)
         {
             IObservableNode child = null;
@@ -111,13 +123,13 @@ namespace Codavore.Core
                 return GetChild(path);
             }
 
-            var isNotPath = !path.Contains(PathSeparaterString);
+            var isNotPath = !path.Contains(CodavoreCoreConstants.PathSeparaterString);
             if (isNotPath)
             {
                 return GetChild(path);
             }
 
-            var segments = path.Split(PathSeparaterCharArray);
+            var segments = path.Split(CodavoreCoreConstants.PathSeparaterCharArray);
             IObservableNode node = this;
             foreach(var segment in segments)
             {
