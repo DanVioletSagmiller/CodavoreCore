@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Codavore.Core;
 using System.Linq;
+using System;
 
 namespace Tests
 {
@@ -279,32 +280,72 @@ namespace Tests
 
             // Assert
         }
-
-        [Test]
-        public void SaveRootNode_WithNoNodes_ReturnsAJsonForANodeOfTheSameNameWithNoValueOrChildren()
+        [Serializable]
+        public class C1
         {
-            // Arrange
-            var root = new ObservableRoot();
-
-            // Act
-            var content = root.SaveRootNode("Asdf"));
-
-            // Assert
-            Assert.IsTrue(Newtonsoft.Json.V)
+            public string value;
         }
 
         [Test]
-        public void SaveRootNode_WithNodes_ValidJson()
+        public void SaveRootNode_WithNodesWithNoValues_ReturnsAJsonForANodeOfTheSameNameWithNoValueOrChildren()
+        {
+            // Arrange
+            var root = new ObservableRoot();
+            var asdf = root.GetNode("Asdf");
+            //asdf.GetChild("int");//.SetValue(5);
+            //var c = new C1() { value = "asdf1 4 C1" };
+            //var c = new string[] { "asdf1", "asdf2" };
+            //var c = Vector3.one;
+            //var c = (int)5;
+            //asdf.GetChild("obj");//.SetValue(c);
+
+            // Act
+            var content = root.SaveRootNode("Asdf");
+            Debug.Log(content);
+
+            // Assert
+            var newRoot = new ObservableRoot();
+            newRoot.LoadRootNode(content);
+        }
+
+        [Test]
+        public void SaveRootNode_WithNodesWithIntValue_ReturnsAJsonForANodeOfTheSameNameWithTheSameIntValue()
+        {
+            // Arrange
+            var root = new ObservableRoot();
+            var asdf = root.GetNode("Asdf");
+            asdf.GetChild("int").SetValue(5);
+            //var c = new C1() { value = "asdf1 4 C1" };
+            //var c = new string[] { "asdf1", "asdf2" };
+            //var c = Vector3.one;
+            //var c = (int)5;
+            //asdf.GetChild("obj");//.SetValue(c);
+
+            // Act
+            var content = root.SaveRootNode("Asdf");
+            Debug.Log(content);
+
+            // Assert
+            var newRoot = new ObservableRoot();
+            newRoot.LoadRootNode(content);
+            Assert.AreEqual(
+                5, 
+                newRoot.GetNode("Asdf").GetValue<int>(),
+                "Was expecting node:Asdf to return int of 5.");
+        }
+
+        [Test]
+        public void SaveRootNode_WithNodes_ValidJson()        
         {
             // Arrange
             var root = new ObservableRoot();
 
-
             // Act
-
+            var content = root.SaveRootNode("Asdf");
 
             // Assert
-            throw new System.NotImplementedException();
+            var newRoot = new ObservableRoot();
+            newRoot.LoadRootNode(content);
         }
 
         [Test]

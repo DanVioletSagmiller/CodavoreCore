@@ -5,12 +5,16 @@
 namespace Codavore.Core
 {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using UnityEngine;
 
     public interface IObservableNode
     {
+        Guid GetGuid();
+
         T GetValue<T>();
         
         void SetValue(object value);
@@ -28,12 +32,19 @@ namespace Codavore.Core
         IObservableNode GetChildFromPath(string path);
 
         IEnumerable<IObservableNode> GetChildren();
+
+        void SaveToJson(JsonWriter writer);
+
+        void LoadFromJson(JsonTextReader reader, bool overwrite = false);
     }
 
     public class ObservableNode : IObservableNode
     {
         [JsonProperty]
         private object Value;
+
+        [JsonIgnore]
+        private Guid Guid;
 
         [JsonIgnore]
         private Action OnValueChange = () => { };
@@ -52,6 +63,14 @@ namespace Codavore.Core
         {
             this.Name = name;
             this.Parent = parent;
+            this.Guid = Guid.NewGuid();
+        }
+
+        public ObservableNode(string name, IObservableNode parent, Guid guid)
+        {
+            this.Name = name;
+            this.Parent = parent;
+            this.Guid = guid;
         }
 
         public T GetValue<T>()
@@ -135,8 +154,123 @@ namespace Codavore.Core
             {
                 node = node.GetChild(segment);
             }
-
+            
             return node;
+        }
+
+        public void SaveToJson(JsonWriter writer)
+        {
+            writer.WriteStartObject();
+            // name, .type, .value, .children (then lead to <name repeating)
+            if (this.Value != null)
+            {
+                writer.WritePropertyName("type");
+                writer.WriteValue(this.Value.GetType().FullName);
+
+                writer.WritePropertyName("value");
+                JsonSerializer.CreateDefault().Serialize(writer, this.Value);
+            }
+
+            writer.WritePropertyName("childCount");
+            writer.WriteValue(this.Children.Count);
+            if (this.Children.Count > 0)
+            {
+                writer.WritePropertyName("children");
+                writer.WriteStartArray();
+                foreach (var child in this.Children.Values)
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("name");
+                    writer.WriteValue(child.GetName());
+                    writer.WritePropertyName("data");
+                    child.SaveToJson(writer);
+                }
+
+                writer.WriteEndArray();
+            }
+            writer.WriteEndObject();
+        }
+        private static JObject GetChild(
+            JObject jObj, 
+            string key)
+        {
+            var foundObj = (JObject)jObj
+                .Children()
+                .First((o) =>
+            {
+                var p = (JProperty)o.Parent;
+                return p.Name == "value";
+            }); 
+
+            return foundObj;
+        }
+        public void LoadFromJson(JsonTextReader reader, bool overwrite = false)
+        {
+            reader.Validate(JsonToken.StartObject, "'node' object not started correctly.");
+            reader.Read();
+
+            if (reader.TokenType == JsonToken.EndObject) return;
+
+            reader.Validate(JsonToken.PropertyName, read: false);
+            var propName = (string)reader.Value;
+            if (propName == "type")
+            {
+                reader.Read();
+                // type and value exist
+                var objectTypeName = (string)reader.Value;
+                var objectType = Type.GetType(objectTypeName);
+
+                reader.Validate(JsonToken.PropertyName, name: "value");
+                reader.Read(); // starts the value, so the next line can work
+                var value = JsonSerializer.CreateDefault().Deserialize(reader, objectType);
+                if (overwrite)
+                {
+                    this.SetValue(value);
+                }
+                reader.Read();
+            }
+
+            if (reader.TokenType == JsonToken.EndObject)
+            {
+                return;
+            }
+
+            reader.Validate(JsonToken.PropertyName, name: "childCount", read: false);
+            var childCount = reader.ReadAsInt32();
+            Debug.Log("C#: " + childCount);
+
+            //if (reader.TokenType == JsonToken.EndObject)
+            if (reader.Validate(JsonToken.EndObject, errorOnFailure: false))
+            {
+                return;
+            }
+
+            reader.Validate(JsonToken.PropertyName, name: "children", read: false);
+            reader.Validate(JsonToken.StartArray);
+            for (int i = 0; i < childCount; i++)
+            {
+                reader.Validate(JsonToken.StartObject);
+
+                reader.Validate(JsonToken.PropertyName, name: "name");
+                reader.Validate(JsonToken.String);
+                var childName = (string)reader.Value;
+
+                var child = this.GetChild(childName);
+                reader.Validate(JsonToken.PropertyName, name: "data");
+
+                child.LoadFromJson(reader, overwrite);
+
+                reader.Validate(JsonToken.EndObject);
+            }
+
+            reader.Validate(JsonToken.EndArray);
+            reader.Validate(JsonToken.EndObject);
+
+        }
+
+        public Guid GetGuid()
+        {
+            throw new NotImplementedException();
         }
     }
 }
