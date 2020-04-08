@@ -15,7 +15,7 @@ namespace Newtonsoft.Json
             string complaint = "",
             string name = "",
             bool read = true,
-            bool errorOnFailure = true)
+            bool errorOnFailure = false)
         {
             if (read)
             {
@@ -23,11 +23,11 @@ namespace Newtonsoft.Json
             }
             if (reader.TokenType == JsonToken.PropertyName)
             {
-                UnityEngine.Debug.Log(reader.LineNumber + ":" + reader.LinePosition + ":" + reader.TokenType + ":" + reader.Value.ToString());
+                //UnityEngine.Debug.Log(reader.LineNumber + ":" + reader.LinePosition + ":" + reader.TokenType + ":" + reader.Value.ToString());
             }
             else
             {
-                UnityEngine.Debug.Log(reader.LineNumber + ":" + reader.LinePosition + ":" + reader.TokenType);
+                //UnityEngine.Debug.Log(reader.LineNumber + ":" + reader.LinePosition + ":" + reader.TokenType);
             }
             
 

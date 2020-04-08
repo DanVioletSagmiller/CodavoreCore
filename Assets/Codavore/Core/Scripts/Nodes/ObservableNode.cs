@@ -27,7 +27,7 @@ namespace Codavore.Core
 
         string GetName();
 
-        void Reset(string name, Guid guid, string path, object value);
+        void Reset(string name, string path, object value);
     }
 
     public class ObservableNode : IObservableNode
@@ -37,6 +37,11 @@ namespace Codavore.Core
         private object Value;
         private string Path;
         private Action OnChange = () => { };
+
+        public ObservableNode(Guid guid)
+        {
+            this.Guid = guid;
+        }
 
         public Guid GetGuid()
         {
@@ -58,10 +63,9 @@ namespace Codavore.Core
             return (T)this.Value;
         }
 
-        public void Reset(string name, Guid guid, string path, object value)
+        public void Reset(string name, string path, object value)
         {
             this.Name = name;
-            this.Guid = guid;
             this.Path = path;
             this.SetValue(value);
         }
