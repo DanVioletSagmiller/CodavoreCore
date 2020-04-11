@@ -28,6 +28,8 @@ namespace Codavore.Core
         string GetName();
 
         void Reset(string name, string path, object value);
+
+        bool HasListeners();
     }
 
     public class ObservableNode : IObservableNode
@@ -61,6 +63,11 @@ namespace Codavore.Core
         public T GetValue<T>()
         {
             return (T)this.Value;
+        }
+
+        public bool HasListeners()
+        {
+            return this.OnChange.GetInvocationList().Length > 1;
         }
 
         public void Reset(string name, string path, object value)

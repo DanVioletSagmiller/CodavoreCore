@@ -55,6 +55,8 @@ namespace Codavore.Core
         private static void MapTypes()
         {
             Locator.Set<ILog, Log>();
+            Locator.Set<IObservableRoot, ObservableRoot>();
+            Locator.Set<IObservableStorage, ObservableStorage>();
             Locator.Set<IUnityEvents, UnityEvents>();
 
             Locator.SetFrom<IUnityEventsCaller, IUnityEvents>();

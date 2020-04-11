@@ -20,6 +20,8 @@ namespace Codavore.Core
         List<IObservableNode> GetNodes(string path, bool withLineage = false);
         string SaveLineage(string path);
         void LoadLineage(string json);
+        void DeleteLineage(string path, bool includeActions = false);
+        void DeleteNode(Guid guid, bool includeActions = false);
     }
 
     public class ObservableRoot : IObservableRoot
@@ -65,7 +67,7 @@ namespace Codavore.Core
                     continue;
                 }
 
-                var rootPath = path.Split('/')[0];
+                var rootPath = path.Split(CodavoreConstants.PathSeparaterChar)[0];
                 if (string.IsNullOrEmpty(rootPath) || rootPaths.Contains(rootPath))
                 {
                     continue;
@@ -153,112 +155,14 @@ namespace Codavore.Core
 
                 writer.WriteEndArray();
                 writer.WriteEndObject();
+
+
+                var lights = GameObject.FindObjectsOfType<Light>();
+
+
             }
 
             return sb.ToString();
-        }
-
-        public void LoadLineage1(string json)
-        {
-            var serializer = JsonSerializer.CreateDefault();
-            var reader = new JsonTextReader(new StringReader(json));
-            if (!reader.Validate(JsonToken.StartObject))
-            {
-                Debug.LogWarning("LoadLineage given JSON missing opening '{'. Json = " + json);
-                return;
-            }
-
-            if (!reader.Validate(JsonToken.PropertyName, name: "version"))
-            {
-                Debug.LogWarning("LoadLineage given JSON without starting version property. Json = " + json);
-                return;
-            }
-
-            if (!reader.Validate(JsonToken.String, name: "1"))
-            {
-                Debug.LogWarning("LoadLineage given JSON without starting version of '1'. Json = " + json);
-                return;
-            }
-
-            if (!reader.Validate(JsonToken.PropertyName, name: "nodes"))
-            {
-                Debug.LogWarning("LoadLineage given JSON without starting nodes property. Json = " + json);
-                return;
-            }
-
-
-            if (!reader.Validate(JsonToken.StartArray))
-            {
-                Debug.LogWarning("LoadLineage given JSON with starting nodes property, but it was not an array. Json = " + json);
-                return;
-            }
-
-            var hasObj = reader.Validate(JsonToken.StartObject); // if false, it means .EndObject
-            int index = 0;
-            while (hasObj)
-            {
-                index++;
-
-                if (!reader.Validate(JsonToken.PropertyName, name: "guid"))
-                {
-                    Debug.LogWarning("LoadLineage given JSON, but node " + index + " is missing its guid property. Json = " + json);
-                    return;
-                }
-
-                var guid = Guid.Parse(reader.ReadAsString());
-
-                if (!reader.Validate(JsonToken.PropertyName, name: "name"))
-                {
-                    Debug.LogWarning("LoadLineage given JSON, but node " + index + " is missing its name property. Json = " + json);
-                    return;
-                }
-
-                var name = reader.ReadAsString();
-
-                if (!reader.Validate(JsonToken.PropertyName, name: "path"))
-                {
-                    Debug.LogWarning("LoadLineage given JSON, but node " + index + " is missing its path property. Json = " + json);
-                    return;
-                }
-
-                var path = reader.ReadAsString();
-
-                if (!reader.Validate(JsonToken.PropertyName, name: "type"))
-                {
-                    Debug.LogWarning("LoadLineage given JSON, but node " + index + " is missing its type property. Json = " + json);
-                    return;
-                }
-
-                var typeName = reader.ReadAsString();
-                var hasType = typeName != "none";
-                if (hasType)
-                {
-                    var type = Type.GetType(typeName);
-
-                    if (!reader.Validate(JsonToken.PropertyName, name: "value"))
-                    {
-                        Debug.LogWarning("LoadLineage given JSON, but node " + index + " is missing its value property, despite having a type property not set to 'none'. Json = " + json);
-                        return;
-                    }
-
-                    var obj = serializer.Deserialize(reader, type);
-                    var node = this.GetNode(guid);
-                    node.Reset(name, path, obj);
-                }
-                else
-                {
-                    var node = this.GetNode(guid);
-                    node.Reset(name, path, null);
-                }
-
-                if (!reader.Validate(JsonToken.EndObject))
-                {
-                    Debug.LogWarning("LoadLineage given JSON, but node " + index + " is missing its '}'. Json = " + json);
-                    return;
-                }
-
-                hasObj = reader.Validate(JsonToken.StartObject);
-            }
         }
 
         public void LoadLineage(string json)
@@ -300,6 +204,35 @@ namespace Codavore.Core
                 node.Reset(name, path, value);
             }
             
+        }
+
+        public void DeleteLineage(string path, bool includeActions = false)
+        {
+            var nodes = this.GetNodes(path, withLineage: true);
+            foreach(var node in nodes)
+            {
+                this.DeleteNode(node.GetGuid(), includeActions);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <param name="includeActions">If set true, this will also delete nodes with listeners for changes.</param>
+        public void DeleteNode(Guid guid, bool includeActions = false)
+        {
+            if (includeActions)
+            {
+                this.Nodes.Remove(guid);
+                return;
+            }
+
+            var node = this.GetNode(guid);
+            if (!node.HasListeners())
+            {
+                this.Nodes.Remove(guid);
+            }
         }
     }
 }

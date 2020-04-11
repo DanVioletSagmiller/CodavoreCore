@@ -4,10 +4,10 @@
 
 namespace Codavore.Core
 {
-    public static class CodavoreCoreConstants
+    public static class CodavoreConstants
     {
         public static readonly string PathSeparaterString = "/";
-
-        public static readonly char[] PathSeparaterCharArray = { PathSeparaterString[0] };
+        public static readonly char PathSeparaterChar = '/';
+        public static readonly char[] PathSeparaterCharArray = { PathSeparaterChar };
     }
 }
