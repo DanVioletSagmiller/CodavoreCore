@@ -36,7 +36,6 @@ namespace Codavore.Core
             }
 
             initialized = true;
-
             MapTypes();
             SetupMonoVerifications();
         }
@@ -55,11 +54,28 @@ namespace Codavore.Core
         private static void MapTypes()
         {
             Locator.Set<ILog, Log>();
+            Locator.Set<IObservableGuids, ObservableGuids>();
             Locator.Set<IObservableRoot, ObservableRoot>();
             Locator.Set<IObservableStorage, ObservableStorage>();
             Locator.Set<IUnityEvents, UnityEvents>();
-
             Locator.SetFrom<IUnityEventsCaller, IUnityEvents>();
+        }
+
+        private static bool IsInTest
+        {
+            get
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                foreach(var asm in assemblies)
+                {
+                    if (asm.FullName.StartsWith("UnityEngine.TestRunner"))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
@@ -70,6 +86,13 @@ namespace Codavore.Core
         {
             var log = Locator.Get<ILog>();
             var path = typeof(LocatorInitializer).FullName + "." + nameof(VerifyBehaviours);
+
+            if (IsInTest)
+            {
+                log.Info(path, "Currently believed to be in testing mode, so we are not verifying the behaviours.");
+                return;
+            }
+
             foreach (var type in behaviourChecks)
             {
                 if (GameObject.FindObjectOfType(type) == null)

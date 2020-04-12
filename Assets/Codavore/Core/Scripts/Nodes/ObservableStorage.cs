@@ -1,4 +1,4 @@
-﻿// <copyright file="ObservableRoot.cs" company="Codavore, LLC">
+﻿// <copyright file="ObservableStorage.cs" company="Codavore, LLC">
 //     Copyright (c) Codavore, LLC. All rights reserved.
 // </copyright>
 
@@ -14,7 +14,10 @@ namespace Codavore.Core
 
     public interface IObservableStorage
     {
+        void Load(string nodePath);
 
+        void ForceLoad(string nodePath);
+        string Save(string nodePath);
     }
 
     public class ObservableStorage : IObservableStorage
@@ -23,7 +26,7 @@ namespace Codavore.Core
         private ILog Log = Locator.Get<ILog>();
         private string SavePath = Application.persistentDataPath;
         private List<string> LoadedPaths = new List<string>();
-        private const string Extension = ".ors"; // ORS => Observable Root Storage
+        private readonly string Extension = ".ors"; // ORS => Observable Root Storage
 
         public void Load(string nodePath)
         {
@@ -34,11 +37,11 @@ namespace Codavore.Core
 
         public void ForceLoad(string nodePath)
         {
-            var logPath = nameof(ObservableStorage)
+            var logPath = nameof(ObservableStorage) + "." + nameof(ForceLoad);
             var localPath = GetLocalPathFor(nodePath);
             if (!File.Exists(localPath))
             {
-                this.Log.Warning()
+                this.Log.Warning(logPath, "Attempted to load the file " + nodePath + this.Extension + ", but it did not exist.");
                 return;
             }
             var json = System.IO.File.ReadAllText(localPath);
@@ -53,8 +56,19 @@ namespace Codavore.Core
             }
 
             var correctedPath = nodePath.Replace(CodavoreConstants.PathSeparaterChar, System.IO.Path.DirectorySeparatorChar);
-            var fullPath = this.SavePath + CodavoreConstants.PathSeparaterString + correctedPath + Extension;
+            var fullPath = this.SavePath + CodavoreConstants.PathSeparaterString + correctedPath + this.Extension;
             return fullPath;
+        }
+
+        public string Save(string nodePath)
+        {
+            var path = this.GetLocalPathFor(nodePath);
+            var contents = this.Root.SaveLineage(nodePath);
+            var directory = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(path, contents);
+
+            return contents;
         }
     }
 }

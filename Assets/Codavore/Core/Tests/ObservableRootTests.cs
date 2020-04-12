@@ -8,7 +8,7 @@ using System.Linq;
 using System;
 
 namespace Tests
-{
+{   
     public class ObservableRootTests
     {
         [Test]
@@ -55,9 +55,9 @@ namespace Tests
             // Assert
             Assert.AreEqual(
                 0,
-                nodes.Count(), 
+                nodes.Count(),
                 "There should have been 0 items returned, since it was not set, but "
-                + nodes.Count() 
+                + nodes.Count()
                 + " were returned.");
         }
 
@@ -163,13 +163,12 @@ namespace Tests
 
             // Act
             var content = root.SaveLineage("level1Data");
-            Debug.Log(content);
 
             // Assert
             var newRoot = new ObservableRoot();
             newRoot.LoadLineage(content);
             Assert.AreEqual(
-                5, 
+                5,
                 newRoot.GetNode(guid).GetValue<int>(),
                 "Was expecting node:Asdf to return int of 5.");
         }

@@ -165,11 +165,8 @@ namespace Tests
         {
             // Arrange
             var node = new ObservableNode(Guid.NewGuid());
-            var hasListenerTriggered = false;
-            System.Action listener = new System.Action(() =>
-            {
-                hasListenerTriggered = true;
-            });
+
+            System.Action listener = new System.Action(() => { });
 
             // Act
             // Assert

@@ -77,7 +77,7 @@ namespace Codavore.Core
             var location = new Location()
             {
                 AbstractType = key,
-                State = Location.LocationState.HasValue,
+                State = Location.LocationState.HasConstructor,
                 Create = new System.Func<object>(() => { return provider(); })
             };
 
@@ -121,6 +121,11 @@ namespace Codavore.Core
             /// </summary>
             public enum LocationState
             {
+                /// <summary>
+                /// Default undefinted, if enum is generated
+                /// </summary>
+                UnDefined,
+
                 /// <summary>
                 /// The location is already storing the value.
                 /// </summary>
