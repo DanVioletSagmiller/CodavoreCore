@@ -1,0 +1,19 @@
+{
+    "name": "CodavoreCoreTests",
+    "references": [
+        "CodavoreCore"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "WindowsStandalone32",
+        "WindowsStandalone64"
+    ],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
+}
